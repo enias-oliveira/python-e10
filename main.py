@@ -66,3 +66,31 @@ def find_all_characters(filename):
         reader = csv.DictReader(readable_file)
 
         return [convert_dict_number_values_to_int(character) for character in reader]
+
+
+def delete_character(filename, character_id):
+
+    try:
+        find_character_by_id(filename, character_id)
+    except ValueError:
+        return False
+
+    with open(filename, "r") as readable_file:
+
+        reader = csv.DictReader(readable_file)
+
+        new_file = [
+            character for character in reader if character["id"] != str(character_id)
+        ]
+
+    with open(filename, "w") as writable_file:
+
+        fieldnames = ["id", "name", "intelligence", "power", "strength", "agility"]
+        writer = csv.DictWriter(writable_file, fieldnames=fieldnames)
+
+        writer.writeheader()
+
+        for row in new_file:
+            writer.writerows(row)
+
+    return True
