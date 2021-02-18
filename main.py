@@ -94,3 +94,22 @@ def delete_character(filename, character_id):
             writer.writerows(row)
 
     return True
+
+
+def update_character(filename, character_id, **kwargs):
+
+    try:
+        character_to_update = find_character_by_id(filename, character_id)
+        character_to_update.update(kwargs)
+        delete_character(filename, character_id)
+    except ValueError:
+        return None
+
+    with open(filename, "a+", newline="") as writable_file:
+
+        fieldnames = ["id", "name", "intelligence", "power", "strength", "agility"]
+        writer = csv.DictWriter(writable_file, fieldnames=fieldnames)
+
+        writer.writerow(character_to_update)
+
+        return character_to_update
