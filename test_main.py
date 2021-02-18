@@ -1,4 +1,4 @@
-from main import create_character
+from main import create_character, find_character_by_id
 
 from pytest import fixture, raises
 
@@ -21,6 +21,18 @@ def character(file_name):
     agility = 8
 
     return [file_name, name, intelligence, power, strength, agility]
+
+
+@fixture(scope="module")
+def character_dict():
+    return {
+        "id": 1,
+        "name": "Hulk",
+        "intelligence": 9,
+        "power": 7,
+        "strength": 10,
+        "agility": 8,
+    }
 
 
 @fixture(scope="module")
@@ -54,15 +66,9 @@ def csv_file_with_invalid_field_names():
     os.remove(invalid_file_name)
 
 
-def test_create_character_standard(character, csv_file):
-    expected_return = {
-        "id": 1,
-        "name": "Hulk",
-        "intelligence": 9,
-        "power": 7,
-        "strength": 10,
-        "agility": 8,
-    }
+def test_create_character_standard(character, character_dict, csv_file):
+
+    expected_return = character_dict
 
     actual_return = create_character(*character)
 
@@ -89,6 +95,16 @@ def test_create_characters_with_invalid_csv(
         create_character(*character)
 
 
-# def test_find_character_by_id_standard(test_csv, test_character):
+def test_find_character_by_id_standard(file_name, csv_file, character, character_dict):
 
-#     character_id = 1
+    character_id = 1
+
+    expected = character_dict
+
+    actual = find_character_by_id(file_name, character_id)
+
+    assert actual == expected
+
+    with raises(ValueError):
+        inexistent_character_id = 56
+        find_character_by_id(file_name, inexistent_character_id)
