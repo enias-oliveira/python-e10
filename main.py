@@ -1,6 +1,15 @@
 import csv
 
 
+def convert_dict_number_values_to_int(dict_):
+    number_atributes = ["id", "intelligence", "power", "strength", "agility"]
+
+    return {
+        key: (int(value) if (key in number_atributes) else value)
+        for key, value in dict_.items()
+    }
+
+
 def create_character(filename, name, intelligence, power, strength, agility):
 
     expected_field_names = [
@@ -40,13 +49,6 @@ def create_character(filename, name, intelligence, power, strength, agility):
 
 
 def find_character_by_id(filename, character_id):
-    def convert_dict_number_values_to_int(dict_):
-        number_atributes = ["id", "intelligence", "power", "strength", "agility"]
-
-        return {
-            key: (int(value) if (key in number_atributes) else value)
-            for key, value in dict_.items()
-        }
 
     with open(filename, "r") as readable_file:
         reader = csv.DictReader(readable_file)
@@ -56,3 +58,11 @@ def find_character_by_id(filename, character_id):
                 return convert_dict_number_values_to_int(row)
 
     raise ValueError("Character not found by given id")
+
+
+def find_all_characters(filename):
+
+    with open(filename, "r") as readable_file:
+        reader = csv.DictReader(readable_file)
+
+        return [convert_dict_number_values_to_int(character) for character in reader]
