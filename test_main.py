@@ -1,4 +1,4 @@
-from main import create_character, find_character_by_id
+from main import create_character, find_character_by_id, find_all_characters
 
 from pytest import fixture, raises
 
@@ -66,6 +66,22 @@ def csv_file_with_invalid_field_names():
     os.remove(invalid_file_name)
 
 
+@fixture
+def csv_empty_file():
+
+    empty_file_name = "empty.csv"
+
+    with open(empty_file_name, "w") as file:
+        fieldnames = ["id", "name", "intelligence", "power", "strength", "agility"]
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+
+        writer.writeheader()
+
+    yield empty_file_name
+
+    os.remove(empty_file_name)
+
+
 def test_create_character_standard(character, character_dict, csv_file):
 
     expected_return = character_dict
@@ -108,3 +124,23 @@ def test_find_character_by_id_standard(file_name, csv_file, character, character
     with raises(ValueError):
         inexistent_character_id = 56
         find_character_by_id(file_name, inexistent_character_id)
+
+
+def test_find_all_characters_standard(character_dict, csv_file, file_name):
+
+    expected = [character_dict]
+
+    actual = find_all_characters(file_name)
+
+    assert actual == expected
+
+
+def test_find_all_characters_empty_file(csv_empty_file):
+
+    empty_file_name = csv_empty_file
+
+    expected = []
+
+    actual = find_all_characters(empty_file_name)
+
+    assert actual == expected
