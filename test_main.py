@@ -1,4 +1,9 @@
-from main import create_character, find_character_by_id, find_all_characters
+from main import (
+    create_character,
+    find_character_by_id,
+    find_all_characters,
+    delete_character,
+)
 
 from pytest import fixture, raises
 
@@ -7,12 +12,7 @@ import os
 
 
 @fixture(scope="module")
-def file_name():
-    return "test_characters.csv"
-
-
-@fixture(scope="module")
-def character(file_name):
+def character():
 
     name = "Hulk"
     intelligence = 9
@@ -20,7 +20,7 @@ def character(file_name):
     strength = 10
     agility = 8
 
-    return [file_name, name, intelligence, power, strength, agility]
+    return [name, intelligence, power, strength, agility]
 
 
 @fixture(scope="module")
@@ -36,7 +36,9 @@ def character_dict():
 
 
 @fixture(scope="module")
-def csv_file(file_name):
+def csv_file():
+
+    file_name = "test_characters.csv"
 
     with open(file_name, "w") as file:
 
@@ -45,7 +47,7 @@ def csv_file(file_name):
 
         writer.writeheader()
 
-    yield
+    yield file_name
 
     os.remove(file_name)
 
@@ -61,7 +63,7 @@ def csv_file_with_invalid_field_names():
 
         writer.writeheader()
 
-    yield
+    yield invalid_file_name
 
     os.remove(invalid_file_name)
 
@@ -84,13 +86,15 @@ def csv_empty_file():
 
 def test_create_character_standard(character, character_dict, csv_file):
 
+    file_name = csv_file
+
     expected_return = character_dict
 
-    actual_return = create_character(*character)
+    actual_return = create_character(file_name, *character)
 
     expected_csv_last_row = ["1", "Hulk", "9", "7", "10", "8"]
 
-    with open(character[0]) as file:
+    with open(file_name) as file:
         reader = csv.reader(file)
 
         characters = [character for character in reader]
@@ -105,13 +109,15 @@ def test_create_characters_with_invalid_csv(
     character, csv_file_with_invalid_field_names
 ):
 
-    character[0] = "invalid.csv"
+    invalid_file_name = csv_file_with_invalid_field_names
 
     with raises(ValueError):
-        create_character(*character)
+        create_character(invalid_file_name, *character)
 
 
-def test_find_character_by_id_standard(file_name, csv_file, character, character_dict):
+def test_find_character_by_id_standard(csv_file, character, character_dict):
+
+    file_name = csv_file
 
     character_id = 1
 
@@ -126,7 +132,9 @@ def test_find_character_by_id_standard(file_name, csv_file, character, character
         find_character_by_id(file_name, inexistent_character_id)
 
 
-def test_find_all_characters_standard(character_dict, csv_file, file_name):
+def test_find_all_characters_standard(character_dict, csv_file):
+
+    file_name = csv_file
 
     expected = [character_dict]
 
@@ -144,3 +152,32 @@ def test_find_all_characters_empty_file(csv_empty_file):
     actual = find_all_characters(empty_file_name)
 
     assert actual == expected
+
+
+def test_delete_character_standard(csv_file):
+
+    file_name = csv_file
+
+    character_id = 1
+
+    was_deleted = delete_character(file_name, character_id)
+
+    assert was_deleted
+
+    with open(file_name, "r") as readable_file:
+
+        reader = csv.reader(readable_file)
+
+        for row in reader:
+            assert row != ["1", "Hulk", "9", "7", "10", "8"]
+
+
+def test_deleted_character_inexistent_character(csv_file):
+
+    file_name = csv_file
+
+    character_id = 45
+
+    was_deleted = delete_character(file_name, character_id)
+
+    assert not was_deleted
