@@ -6,13 +6,13 @@ import csv
 import os
 
 
-@fixture
-def test_file_name():
+@fixture(scope="module")
+def file_name():
     return "test_characters.csv"
 
 
-@fixture
-def test_character(test_file_name):
+@fixture(scope="module")
+def character(file_name):
 
     name = "Hulk"
     intelligence = 9
@@ -20,41 +20,42 @@ def test_character(test_file_name):
     strength = 10
     agility = 8
 
-    return [test_file_name, name, intelligence, power, strength, agility]
+    return [file_name, name, intelligence, power, strength, agility]
 
 
-@fixture
-def test_csv(test_file_name):
+@fixture(scope="module")
+def csv_file(file_name):
 
-    with open(test_file_name, "w") as test_file:
+    with open(file_name, "w") as file:
 
         fieldnames = ["id", "name", "intelligence", "power", "strength", "agility"]
-        writer = csv.DictWriter(test_file, fieldnames=fieldnames)
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         writer.writeheader()
 
     yield
 
-    os.remove(test_file_name)
+    os.remove(file_name)
 
 
 @fixture
-def test_csv_with_invalid_field_names(test_file_name):
+def csv_file_with_invalid_field_names():
 
-    with open(test_file_name, "w") as test_file:
+    invalid_file_name = "invalid.csv"
+
+    with open(invalid_file_name, "w") as file:
         fieldnames = ["id", "name", "intelligence", "agility"]
-        writer = csv.DictWriter(test_file, fieldnames=fieldnames)
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         writer.writeheader()
 
     yield
 
-    os.remove(test_file_name)
+    os.remove(invalid_file_name)
 
 
-def test_create_character_standard_return(test_character, test_csv):
-
-    expected = {
+def test_create_character_standard(character, csv_file):
+    expected_return = {
         "id": 1,
         "name": "Hulk",
         "intelligence": 9,
@@ -63,28 +64,31 @@ def test_create_character_standard_return(test_character, test_csv):
         "agility": 8,
     }
 
-    actual = create_character(*test_character)
+    actual_return = create_character(*character)
 
-    assert actual == expected
+    expected_csv_last_row = ["1", "Hulk", "9", "7", "10", "8"]
 
-
-def test_create_character_written_in_file(test_character, test_csv):
-
-    expected = ["1", "Hulk", "9", "7", "10", "8"]
-
-    create_character(*test_character)
-
-    with open(test_character[0]) as file:
+    with open(character[0]) as file:
         reader = csv.reader(file)
 
         characters = [character for character in reader]
-        last_character = characters[-1]
+        actual_csv_last_row = characters[-1]
 
-    assert last_character == expected
+    assert actual_return == expected_return
+
+    assert actual_csv_last_row == expected_csv_last_row
 
 
-def test_create_character_invalid_field_names(
-    test_character, test_csv_with_invalid_field_names
+def test_create_characters_with_invalid_csv(
+    character, csv_file_with_invalid_field_names
 ):
+
+    character[0] = "invalid.csv"
+
     with raises(ValueError):
-        create_character(*test_character)
+        create_character(*character)
+
+
+# def test_find_character_by_id_standard(test_csv, test_character):
+
+#     character_id = 1
