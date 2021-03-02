@@ -23,8 +23,7 @@ def create_character(filename, name, intelligence, power, strength, agility):
     with open(filename, "r") as readable_file:
         reader = csv.DictReader(readable_file)
 
-        if reader.fieldnames != expected_field_names:
-            raise ValueError("CSV Fieldnames are invalid or dont exist")
+        has_reader = reader.fieldnames == expected_field_names
 
         rows = list(reader)
         total_rows = len(rows)
@@ -42,6 +41,9 @@ def create_character(filename, name, intelligence, power, strength, agility):
 
     with open(filename, "a") as writable_file:
         writer = csv.DictWriter(writable_file, fieldnames=expected_field_names)
+
+        if not has_reader:
+            writer.writeheader()
 
         writer.writerow(new_character)
 

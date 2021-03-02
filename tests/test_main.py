@@ -54,22 +54,6 @@ def csv_file():
 
 
 @fixture
-def csv_file_with_invalid_field_names():
-
-    invalid_file_name = "invalid.csv"
-
-    with open(invalid_file_name, "w") as file:
-        fieldnames = ["id", "name", "intelligence", "agility"]
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
-
-        writer.writeheader()
-
-    yield invalid_file_name
-
-    os.remove(invalid_file_name)
-
-
-@fixture
 def csv_empty_file():
 
     empty_file_name = "empty.csv"
@@ -131,16 +115,6 @@ def test_create_character_standard(character, character_dict, csv_file):
     assert actual_return == expected_return
 
     assert actual_csv_last_row == expected_csv_last_row
-
-
-def test_create_characters_with_invalid_csv(
-    character, csv_file_with_invalid_field_names
-):
-
-    invalid_file_name = csv_file_with_invalid_field_names
-
-    with raises(ValueError):
-        create_character(invalid_file_name, *character)
 
 
 def test_find_character_by_id_standard(csv_file, character, character_dict):
